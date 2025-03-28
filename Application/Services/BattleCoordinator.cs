@@ -1,7 +1,9 @@
 using System.Text.Json;
+using Application.Services;
 using NavalBattle.Domain.Enums;
 using NavalBattle.Domain.Models;
 using NavalBattle.Domain.Services.Interfaces;
+
 
 public class BattleCoordinator
 {
@@ -11,6 +13,7 @@ public class BattleCoordinator
     private string _lastLiberacaoAtaqueCorrelationId;
     private Random _random;
     private Ship _ship;
+    private readonly AttackStrategy _attackStrategy;
 
     public BattleCoordinator(IBattleService battleService, IMessageService messageService, string shipName)
     {
@@ -18,6 +21,7 @@ public class BattleCoordinator
         _messageService = messageService;
         _shipName = shipName;
         _random = new Random();
+        _attackStrategy = new AttackStrategy();
     }
 
     public async Task StartAsync()
@@ -42,6 +46,12 @@ public class BattleCoordinator
             case (int)EventType.ResultadoAtaqueEfetuado:
                 var resultado = JsonSerializer.Deserialize<ResultadoAtaqueContent>(message.conteudo);
                 Console.WriteLine($"Resultado do ataque: Acertou: {resultado.Acertou}, Distância: {resultado.DistanciaAproximada}");
+                
+                // Registra o resultado do ataque na estratégia
+                _attackStrategy.RecordAttack(
+                    new Position(resultado.Posicao.x, resultado.Posicao.y),
+                    resultado.Acertou
+                );
                 break;
 
             case (int)EventType.NavioAbatido:
@@ -85,26 +95,18 @@ public class BattleCoordinator
 
     private async Task RealizarAtaque()
     {
-        // Gera uma posição aleatória que não seja onde nosso navio está
-        Posicao posicaoAtaque;
-        do
-        {
-            posicaoAtaque = new Posicao
-            {
-                x = _random.Next(0, 100),
-                y = _random.Next(0, 30)
-            };
-        } while (_ship != null && _ship.Positions.Any(p => p.X == posicaoAtaque.x && p.Y == posicaoAtaque.y));
+        // Usa a estratégia para determinar a próxima posição de ataque
+        var nextPosition = _attackStrategy.GetNextAttackPosition();
 
         var ataqueContent = new AtaqueContent
         {
             nomeNavio = _shipName,
-            posicaoAtaque = posicaoAtaque
+            posicaoAtaque = new Posicao { x = nextPosition.X, y = nextPosition.Y }
         };
 
         var message = new Message
         {
-            correlationId = _lastLiberacaoAtaqueCorrelationId, // Usa o mesmo correlationId do LiberacaoAtaque
+            correlationId = _lastLiberacaoAtaqueCorrelationId,
             origem = _shipName,
             evento = ((int)EventType.Ataque).ToString(),
             conteudo = JsonSerializer.Serialize(ataqueContent)
