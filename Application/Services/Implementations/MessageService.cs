@@ -37,10 +37,20 @@ namespace NavalBattle.Domain.Services.Implementations
 
         public async Task SendMessageAsync(Message message)
         {
-            var messageContent = JsonSerializer.Serialize(message);
-            var encryptedContent = _cryptoService.Encrypt(messageContent, message.correlationId);
+            // Criptografa apenas o conteúdo
+            var encryptedContent = _cryptoService.Encrypt(message.conteudo, message.correlationId);
 
-            var serviceBusMessage = new ServiceBusMessage(encryptedContent)
+            // Cria uma nova mensagem com o conteúdo criptografado
+            var messageToSend = new Message
+            {
+                correlationId = message.correlationId,
+                origem = message.origem,
+                evento = message.evento,
+                conteudo = encryptedContent
+            };
+
+            var messageContent = JsonSerializer.Serialize(messageToSend);
+            var serviceBusMessage = new ServiceBusMessage(messageContent)
             {
                 CorrelationId = message.correlationId,
                 ApplicationProperties = { { "Origin", message.origem } }
@@ -54,11 +64,12 @@ namespace NavalBattle.Domain.Services.Implementations
             var receivedMessage = await _receiver.ReceiveMessageAsync();
             if (receivedMessage == null) return null;
 
-            var decryptedContent = _cryptoService.Decrypt(
-                receivedMessage.Body.ToString(),
-                receivedMessage.CorrelationId);
+            var message = JsonSerializer.Deserialize<Message>(receivedMessage.Body.ToString());
+            
+            // Descriptografa apenas o conteúdo
+            message.conteudo = _cryptoService.Decrypt(message.conteudo, message.correlationId);
 
-            return JsonSerializer.Deserialize<Message>(decryptedContent);
+            return message;
         }
 
         public async Task StartListeningAsync(Func<Message, Task> messageHandler)
@@ -79,18 +90,17 @@ namespace NavalBattle.Domain.Services.Implementations
                 Message message;
                 try
                 {
-                    // Tenta primeiro descriptografar
-                    var decryptedContent = _cryptoService.Decrypt(
-                        args.Message.Body.ToString(),
-                        args.Message.CorrelationId);
-                    message = JsonSerializer.Deserialize<Message>(decryptedContent);
-                    Console.WriteLine("Mensagem recebida (criptografada)");
+                    // Tenta primeiro descriptografar apenas o conteúdo
+                    message = JsonSerializer.Deserialize<Message>(args.Message.Body.ToString());
+                    message.conteudo = _cryptoService.Decrypt(message.conteudo, message.correlationId);
+                    Console.WriteLine("Mensagem recebida (conteúdo criptografado)");
                 }
                 catch
                 {
                     // Se falhar a descriptografia, tenta ler a mensagem direta
                     message = JsonSerializer.Deserialize<Message>(args.Message.Body.ToString());
                     Console.WriteLine("Mensagem recebida (não criptografada)");
+                    Console.WriteLine("-------------------------------------");
                 }
 
                 Console.WriteLine($"Origem: {message?.origem ?? "Desconhecida"}");
