@@ -66,11 +66,16 @@ public class BattleCoordinator
 
     private async Task RegistrarNavio()
     {
-        var posicaoCentral = new Posicao 
-        { 
-            x = _random.Next(2, 98), // Evita bordas
-            y = _random.Next(2, 28)  // Evita bordas
-        };
+        // Gera uma nova posição que não seja a mesma da anterior
+        Posicao posicaoCentral;
+        do
+        {
+            posicaoCentral = new Posicao 
+            { 
+                x = _random.Next(2, 98), // Evita bordas
+                y = _random.Next(2, 28)  // Evita bordas
+            };
+        } while (_ship != null && _ship.Positions.Any(p => p.X == posicaoCentral.x && p.Y == posicaoCentral.y));
 
         var orientacao = _random.Next(2) == 0 ? ShipOrientation.Vertical : ShipOrientation.Horizontal;
         _ship = new Ship(_shipName, new Position(posicaoCentral.x, posicaoCentral.y), orientacao, "chave");
