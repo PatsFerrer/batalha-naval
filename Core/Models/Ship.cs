@@ -1,6 +1,6 @@
-using NavalBattle.Domain.Enums;
+using NavalBattle.Core.Enums;
 
-namespace NavalBattle.Domain.Models
+namespace NavalBattle.Core.Models
 {
     public class Ship
     {
@@ -17,12 +17,12 @@ namespace NavalBattle.Domain.Models
             Name = name;
             Orientation = orientation;
             CryptoKey = cryptoKey;
-            
+
             Positions = new Position[5];
 
             // Calcula as posições do navio baseado na posição central e orientação
             Positions[2] = centerPosition; // Posição central (3)
-            
+
             if (orientation == ShipOrientation.Horizontal)
             {
                 Positions[0] = new Position(centerPosition.X - 2, centerPosition.Y);
@@ -44,4 +44,4 @@ namespace NavalBattle.Domain.Models
             return position.IsValid();
         }
     }
-} 
+}

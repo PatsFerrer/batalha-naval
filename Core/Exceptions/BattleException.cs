@@ -1,4 +1,4 @@
-namespace NavalBattle.Domain.Exceptions
+namespace NavalBattle.Core.Exceptions
 {
     public class BattleException : Exception
     {

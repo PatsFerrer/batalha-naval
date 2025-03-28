@@ -1,4 +1,4 @@
-namespace NavalBattle.Domain.Services.Interfaces
+namespace NavalBattle.Application.Interfaces
 {
     public interface ICryptoService
     {

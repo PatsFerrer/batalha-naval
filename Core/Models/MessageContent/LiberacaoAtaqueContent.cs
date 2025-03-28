@@ -1,4 +1,7 @@
-public class LiberacaoAtaqueContent
+namespace NavalBattle.Core.Models.MessageContent
 {
-    public string nomeNavio { get; set; }
+    public class LiberacaoAtaqueContent
+    {
+        public string nomeNavio { get; set; }
+    }
 } 

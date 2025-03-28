@@ -1,4 +1,4 @@
-namespace NavalBattle.Domain.Models
+namespace NavalBattle.Core.Models
 {
     public class Position
     {

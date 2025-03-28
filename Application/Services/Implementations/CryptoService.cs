@@ -1,8 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
-using NavalBattle.Domain.Services.Interfaces;
+using NavalBattle.Application.Interfaces;
 
-namespace NavalBattle.Domain.Services.Implementations
+namespace NavalBattle.Application.Services.Implementations
 {
     public class CryptoService : ICryptoService
     {

@@ -1,6 +1,4 @@
-using NavalBattle.Domain.Enums;
-
-namespace NavalBattle.Domain.Models
+namespace NavalBattle.Core.Models
 {
     public class Message
     {

@@ -1,6 +1,12 @@
-public class ResultadoAtaqueContent
+using System.Text.Json.Serialization;
+
+namespace NavalBattle.Core.Models.MessageContent
 {
-    public Posicao Posicao { get; set; }
-    public bool Acertou { get; set; }
-    public int DistanciaAproximada { get; set; }
+    public class ResultadoAtaqueContent
+    {
+        [JsonPropertyName("Posicao")]
+        public MessagePosition PositionMessage { get; set; }
+        public bool Acertou { get; set; }
+        public int DistanciaAproximada { get; set; }
+    }
 } 

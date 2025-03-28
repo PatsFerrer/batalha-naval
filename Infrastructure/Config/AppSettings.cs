@@ -1,4 +1,4 @@
-namespace NavalBattle.Domain.Config
+namespace NavalBattle.Infrastructure.Config
 {
     public class AppSettings
     {

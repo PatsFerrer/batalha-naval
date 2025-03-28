@@ -1,6 +1,9 @@
-public class RegistroNavioContent
+namespace NavalBattle.Core.Models.MessageContent
 {
-    public string nomeNavio { get; set; }
-    public Posicao posicaoCentral { get; set; }
-    public string orientacao { get; set; }
+    public class RegistroNavioContent
+    {
+        public string nomeNavio { get; set; }
+        public MessagePosition posicaoCentral { get; set; }
+        public string orientacao { get; set; }
+    }
 } 

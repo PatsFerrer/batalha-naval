@@ -1,4 +1,4 @@
-namespace NavalBattle.Domain.Enums
+namespace NavalBattle.Core.Enums
 {
     public enum ShipOrientation
     {

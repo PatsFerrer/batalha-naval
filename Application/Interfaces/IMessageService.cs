@@ -1,6 +1,6 @@
-using NavalBattle.Domain.Models;
+using NavalBattle.Core.Models;
 
-namespace NavalBattle.Domain.Services.Interfaces
+namespace NavalBattle.Application.Interfaces
 {
     public interface IMessageService
     {

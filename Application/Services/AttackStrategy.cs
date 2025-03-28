@@ -1,6 +1,6 @@
-using NavalBattle.Domain.Models;
+using NavalBattle.Core.Models;
 
-namespace Application.Services
+namespace NavalBattle.Application.Services
 {
   public class AttackStrategy
   {
@@ -19,6 +19,8 @@ namespace Application.Services
 
     public Position GetNextAttackPosition()
     {
+      Console.WriteLine($"Obtendo próxima posição. HasHit: {_hasHit}, LastHitPosition: {(_lastHitPosition != null ? $"X:{_lastHitPosition.X}, Y:{_lastHitPosition.Y}" : "null")}");
+      
       if (_hasHit && _lastHitPosition != null)
       {
         // Se acertamos, vamos atacar nas posições adjacentes
@@ -64,6 +66,7 @@ namespace Application.Services
             _random.Next(0, 100),
             _random.Next(0, 30)
         );
+        Console.WriteLine($"Tentando posição: X={position.X}, Y={position.Y}"); // Log para debug
       } while (_attackedPositions.Contains($"{position.X},{position.Y}"));
 
       return position;
@@ -74,10 +77,23 @@ namespace Application.Services
       _attackHistory.Add(position);
       _attackedPositions.Add($"{position.X},{position.Y}");
 
+      Console.WriteLine($">>> Registrando ataque em X:{position.X}, Y:{position.Y}, Acertou: {hit}");
+
       if (hit)
       {
         _hasHit = true;
-        _lastHitPosition = position;
+        _lastHitPosition = position;  // Guarda a referência direta
+        Console.WriteLine($">>> ACERTO CONFIRMADO! Próximo ataque será ao redor de X:{position.X}, Y:{position.Y}");
+      }
+      else if (_hasHit && _lastHitPosition != null)
+      {
+        Console.WriteLine($">>> Erro, mas continuando busca ao redor do último acerto em X:{_lastHitPosition.X}, Y:{_lastHitPosition.Y}");
+      }
+      else
+      {
+        _hasHit = false;
+        _lastHitPosition = null;
+        Console.WriteLine(">>> Sem acertos ainda, continuando busca aleatória");
       }
     }
 

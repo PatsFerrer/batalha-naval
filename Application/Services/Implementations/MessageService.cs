@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
-using NavalBattle.Domain.Models;
-using NavalBattle.Domain.Services.Interfaces;
+using NavalBattle.Application.Interfaces;
+using NavalBattle.Core.Models;
 
-namespace NavalBattle.Domain.Services.Implementations
+namespace NavalBattle.Application.Services.Implementations
 {
     public class MessageService : IMessageService
     {
@@ -14,6 +14,7 @@ namespace NavalBattle.Domain.Services.Implementations
         private readonly string _topicName;
         private readonly string _subscriptionName;
         private readonly ICryptoService _cryptoService;
+        private readonly JsonSerializerOptions _jsonOptions;
         private Func<Message, Task> _messageHandler;
 
         public MessageService(
@@ -25,6 +26,11 @@ namespace NavalBattle.Domain.Services.Implementations
             _topicName = topicName;
             _subscriptionName = subscriptionName;
             _cryptoService = cryptoService;
+
+            _jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
 
             _client = new ServiceBusClient(connectionString);
             _sender = _client.CreateSender(_topicName);
@@ -49,7 +55,7 @@ namespace NavalBattle.Domain.Services.Implementations
                 conteudo = encryptedContent
             };
 
-            var messageContent = JsonSerializer.Serialize(messageToSend);
+            var messageContent = JsonSerializer.Serialize(messageToSend, _jsonOptions);
             var serviceBusMessage = new ServiceBusMessage(messageContent)
             {
                 CorrelationId = message.correlationId,
@@ -64,7 +70,7 @@ namespace NavalBattle.Domain.Services.Implementations
             var receivedMessage = await _receiver.ReceiveMessageAsync();
             if (receivedMessage == null) return null;
 
-            var message = JsonSerializer.Deserialize<Message>(receivedMessage.Body.ToString());
+            var message = JsonSerializer.Deserialize<Message>(receivedMessage.Body.ToString(), _jsonOptions);
             
             // Descriptografa apenas o conteúdo
             message.conteudo = _cryptoService.Decrypt(message.conteudo, message.correlationId);
@@ -91,14 +97,14 @@ namespace NavalBattle.Domain.Services.Implementations
                 try
                 {
                     // Tenta primeiro descriptografar apenas o conteúdo
-                    message = JsonSerializer.Deserialize<Message>(args.Message.Body.ToString());
+                    message = JsonSerializer.Deserialize<Message>(args.Message.Body.ToString(), _jsonOptions);
                     message.conteudo = _cryptoService.Decrypt(message.conteudo, message.correlationId);
                     Console.WriteLine("Mensagem recebida (conteúdo criptografado)");
                 }
                 catch
                 {
                     // Se falhar a descriptografia, tenta ler a mensagem direta
-                    message = JsonSerializer.Deserialize<Message>(args.Message.Body.ToString());
+                    message = JsonSerializer.Deserialize<Message>(args.Message.Body.ToString(), _jsonOptions);
                     Console.WriteLine("Mensagem recebida (não criptografada)");
                     Console.WriteLine("-------------------------------------");
                 }

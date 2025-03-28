@@ -1,8 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
-using NavalBattle.Domain.Config;
-using NavalBattle.Domain.Enums;
-using NavalBattle.Domain.Models;
-using NavalBattle.Domain.Services.Implementations;
+using NavalBattle.Application.Services;
+using NavalBattle.Application.Services.Implementations;
+using NavalBattle.Infrastructure.Config;
 
 var configuration = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())

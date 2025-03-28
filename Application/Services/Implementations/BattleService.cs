@@ -1,9 +1,10 @@
 using System.Text.Json;
-using NavalBattle.Domain.Models;
-using NavalBattle.Domain.Services.Interfaces;
-using NavalBattle.Domain.Enums;
+using NavalBattle.Application.Interfaces;
+using NavalBattle.Core.Enums;
+using NavalBattle.Core.Models;
+using NavalBattle.Core.Models.MessageContent;
 
-namespace NavalBattle.Domain.Services.Implementations
+namespace NavalBattle.Application.Services.Implementations
 {
     public class BattleService : IBattleService
     {
@@ -59,7 +60,7 @@ namespace NavalBattle.Domain.Services.Implementations
                 conteudo = JsonSerializer.Serialize(new AtaqueContent 
                 { 
                     nomeNavio = _origin,
-                    posicaoAtaque = new Posicao { x = position.X, y = position.Y }
+                    posicaoAtaque = new MessagePosition { x = position.X, y = position.Y }
                 }),
                 correlationId = Guid.NewGuid().ToString()
             };
