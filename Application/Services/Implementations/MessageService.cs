@@ -97,14 +97,15 @@ namespace NavalBattle.Application.Services.Implementations
                 try
                 {
                     // Tenta primeiro descriptografar apenas o conteúdo
-                    message = JsonSerializer.Deserialize<Message>(args.Message.Body.ToString(), _jsonOptions);
+                    message = JsonSerializer.Deserialize<Message>(args.Message.Body.ToString());
                     message.conteudo = _cryptoService.Decrypt(message.conteudo, message.correlationId);
+                    Console.WriteLine("-------------------------------------");
                     Console.WriteLine("Mensagem recebida (conteúdo criptografado)");
                 }
                 catch
                 {
                     // Se falhar a descriptografia, tenta ler a mensagem direta
-                    message = JsonSerializer.Deserialize<Message>(args.Message.Body.ToString(), _jsonOptions);
+                    message = JsonSerializer.Deserialize<Message>(args.Message.Body.ToString());
                     Console.WriteLine("Mensagem recebida (não criptografada)");
                     Console.WriteLine("-------------------------------------");
                 }

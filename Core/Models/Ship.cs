@@ -25,17 +25,17 @@ namespace NavalBattle.Core.Models
 
             if (orientation == ShipOrientation.Horizontal)
             {
-                Positions[0] = new Position(centerPosition.X - 2, centerPosition.Y);
-                Positions[1] = new Position(centerPosition.X - 1, centerPosition.Y);
-                Positions[3] = new Position(centerPosition.X + 1, centerPosition.Y);
-                Positions[4] = new Position(centerPosition.X + 2, centerPosition.Y);
+                Positions[0] = new Position(centerPosition.PosX - 2, centerPosition.PosY);
+                Positions[1] = new Position(centerPosition.PosX - 1, centerPosition.PosY);
+                Positions[3] = new Position(centerPosition.PosX + 1, centerPosition.PosY);
+                Positions[4] = new Position(centerPosition.PosX + 2, centerPosition.PosY);
             }
             else
             {
-                Positions[0] = new Position(centerPosition.X, centerPosition.Y - 2);
-                Positions[1] = new Position(centerPosition.X, centerPosition.Y - 1);
-                Positions[3] = new Position(centerPosition.X, centerPosition.Y + 1);
-                Positions[4] = new Position(centerPosition.X, centerPosition.Y + 2);
+                Positions[0] = new Position(centerPosition.PosX, centerPosition.PosY - 2);
+                Positions[1] = new Position(centerPosition.PosX, centerPosition.PosY - 1);
+                Positions[3] = new Position(centerPosition.PosX, centerPosition.PosY + 1);
+                Positions[4] = new Position(centerPosition.PosX, centerPosition.PosY + 2);
             }
         }
 

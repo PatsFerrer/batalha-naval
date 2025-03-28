@@ -60,7 +60,7 @@ namespace NavalBattle.Application.Services.Implementations
                 conteudo = JsonSerializer.Serialize(new AtaqueContent 
                 { 
                     nomeNavio = _origin,
-                    posicaoAtaque = new MessagePosition { x = position.X, y = position.Y }
+                    posicaoAtaque = new MessagePosition { X = position.PosX, Y = position.PosY }
                 }),
                 correlationId = Guid.NewGuid().ToString()
             };

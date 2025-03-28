@@ -19,7 +19,7 @@ namespace NavalBattle.Application.Services
 
     public Position GetNextAttackPosition()
     {
-      Console.WriteLine($"Obtendo próxima posição. HasHit: {_hasHit}, LastHitPosition: {(_lastHitPosition != null ? $"X:{_lastHitPosition.X}, Y:{_lastHitPosition.Y}" : "null")}");
+      Console.WriteLine($"Obtendo próxima posição. HasHit: {_hasHit}, LastHitPosition: {(_lastHitPosition != null ? $"X:{_lastHitPosition.PosX}, Y:{_lastHitPosition.PosY}" : "null")}");
       
       if (_hasHit && _lastHitPosition != null)
       {
@@ -36,15 +36,15 @@ namespace NavalBattle.Application.Services
       // Lista de posições adjacentes possíveis (cima, baixo, esquerda, direita)
       var possiblePositions = new List<Position>
             {
-                new Position(_lastHitPosition.X, _lastHitPosition.Y - 1), // cima
-                new Position(_lastHitPosition.X, _lastHitPosition.Y + 1), // baixo
-                new Position(_lastHitPosition.X - 1, _lastHitPosition.Y), // esquerda
-                new Position(_lastHitPosition.X + 1, _lastHitPosition.Y)  // direita
+                new Position(_lastHitPosition.PosX, _lastHitPosition.PosY - 1), // cima
+                new Position(_lastHitPosition.PosX, _lastHitPosition.PosY + 1), // baixo
+                new Position(_lastHitPosition.PosX - 1, _lastHitPosition.PosY), // esquerda
+                new Position(_lastHitPosition.PosX + 1, _lastHitPosition.PosY)  // direita
             };
 
       // Filtra posições válidas e não atacadas
       var validPositions = possiblePositions
-          .Where(p => p.IsValid() && !_attackedPositions.Contains($"{p.X},{p.Y}"))
+          .Where(p => p.IsValid() && !_attackedPositions.Contains($"{p.PosX},{p.PosY}"))
           .ToList();
 
       if (validPositions.Any())
@@ -66,8 +66,8 @@ namespace NavalBattle.Application.Services
             _random.Next(0, 100),
             _random.Next(0, 30)
         );
-        Console.WriteLine($"Tentando posição: X={position.X}, Y={position.Y}"); // Log para debug
-      } while (_attackedPositions.Contains($"{position.X},{position.Y}"));
+        Console.WriteLine($"Tentando posição: X={position.PosX}, Y={position.PosY}"); // Log para debug
+      } while (_attackedPositions.Contains($"{position.PosX},{position.PosY}"));
 
       return position;
     }
@@ -75,19 +75,19 @@ namespace NavalBattle.Application.Services
     public void RecordAttack(Position position, bool hit)
     {
       _attackHistory.Add(position);
-      _attackedPositions.Add($"{position.X},{position.Y}");
+      _attackedPositions.Add($"{position.PosX},{position.PosY}");
 
-      Console.WriteLine($">>> Registrando ataque em X:{position.X}, Y:{position.Y}, Acertou: {hit}");
+      Console.WriteLine($">>> Registrando ataque em X:{position.PosX}, Y:{position.PosY}, Acertou: {hit}");
 
       if (hit)
       {
         _hasHit = true;
         _lastHitPosition = position;  // Guarda a referência direta
-        Console.WriteLine($">>> ACERTO CONFIRMADO! Próximo ataque será ao redor de X:{position.X}, Y:{position.Y}");
+        Console.WriteLine($">>> ACERTO CONFIRMADO! Próximo ataque será ao redor de X:{position.PosX}, Y:{position.PosY}");
       }
       else if (_hasHit && _lastHitPosition != null)
       {
-        Console.WriteLine($">>> Erro, mas continuando busca ao redor do último acerto em X:{_lastHitPosition.X}, Y:{_lastHitPosition.Y}");
+        Console.WriteLine($">>> Erro, mas continuando busca ao redor do último acerto em X:{_lastHitPosition.PosX}, Y:{_lastHitPosition.PosY}");
       }
       else
       {

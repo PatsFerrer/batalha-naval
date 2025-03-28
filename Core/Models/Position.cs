@@ -2,23 +2,23 @@ namespace NavalBattle.Core.Models
 {
     public class Position
     {
-        public int X { get; set; }
-        public int Y { get; set; }
+        public int PosX { get; set; }
+        public int PosY { get; set; }
 
         public Position(int x, int y)
         {
-            X = x;
-            Y = y;
+            PosX = x;
+            PosY = y;
         }
 
         public double CalculateDistance(Position other)
         {
-            return Math.Sqrt(Math.Pow(X - other.X, 2) + Math.Pow(Y - other.Y, 2));
+            return Math.Sqrt(Math.Pow(PosX - other.PosX, 2) + Math.Pow(PosY - other.PosY, 2));
         }
 
         public bool IsValid()
         {
-            return X >= 0 && X < 100 && Y >= 0 && Y < 30;
+            return PosX >= 0 && PosX < 100 && PosY >= 0 && PosY < 30;
         }
     }
 } 

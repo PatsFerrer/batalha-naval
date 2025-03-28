@@ -32,19 +32,19 @@ namespace NavalBattle.Application.Services
 
         private async Task HandleMessageAsync(Message message)
         {
-            switch (int.Parse(message.evento))
+            switch (message.evento)
             {
-                case (int)EventType.CampoLiberadoParaRegistro:
-                case (int)EventType.RegistrarNovamente:
+                case "CampoLiberadoParaRegistro":
+                case "RegistrarNovamente":
                     await RegistrarNavio();
                     break;
 
-                case (int)EventType.LiberacaoAtaque:
+                case "LiberacaoAtaque":
                     _lastLiberacaoAtaqueCorrelationId = message.correlationId;
                     await RealizarAtaque();
                     break;
 
-                case (int)EventType.ResultadoAtaqueEfetuado:
+                case "ResultadoAtaqueEfetuado":
                     try
                     {
                         var resultado = JsonSerializer.Deserialize<ResultadoAtaqueContent>(message.conteudo);
@@ -52,9 +52,9 @@ namespace NavalBattle.Application.Services
 
                         if (resultado.PositionMessage != null)
                         {
-                            var position = new Position(resultado.PositionMessage.x, resultado.PositionMessage.y);
+                            var position = new Position(resultado.PositionMessage.X, resultado.PositionMessage.Y);
                             _attackStrategy.RecordAttack(position, resultado.Acertou);
-                            Console.WriteLine($"Registrado ataque em x:{position.X}, y:{position.Y}, Acertou: {resultado.Acertou}");
+                            Console.WriteLine($"Registrado ataque em x:{position.PosX}, y:{position.PosY}, Acertou: {resultado.Acertou}");
                         }
                     }
                     catch (Exception ex)
@@ -63,11 +63,11 @@ namespace NavalBattle.Application.Services
                     }
                     break;
 
-                case (int)EventType.NavioAbatido:
+                case "NavioAbatido":
                     Console.WriteLine("Nosso navio foi abatido!");
                     break;
 
-                case (int)EventType.Vitoria:
+                case "Vitoria":
                     Console.WriteLine("Vitória! Ganhamos a batalha!");
                     break;
             }
@@ -81,13 +81,13 @@ namespace NavalBattle.Application.Services
             {
                 posicaoCentral = new MessagePosition 
                 { 
-                    x = _random.Next(2, 98),
-                    y = _random.Next(2, 28)
+                    X = _random.Next(2, 98),
+                    Y = _random.Next(2, 28)
                 };
-            } while (_ship != null && _ship.Positions.Any(p => p.X == posicaoCentral.x && p.Y == posicaoCentral.y));
+            } while (_ship != null && _ship.Positions.Any(p => p.PosX == posicaoCentral.X && p.PosY == posicaoCentral.Y));
 
             var orientacao = _random.Next(2) == 0 ? ShipOrientation.Vertical : ShipOrientation.Horizontal;
-            _ship = new Ship(_shipName, new Position(posicaoCentral.x, posicaoCentral.y), orientacao, "chave");
+            _ship = new Ship(_shipName, new Position(posicaoCentral.X, posicaoCentral.Y), orientacao, "chave");
 
             var registroContent = new RegistroNavioContent
             {
@@ -100,7 +100,7 @@ namespace NavalBattle.Application.Services
             {
                 correlationId = Guid.NewGuid().ToString(),
                 origem = _shipName,
-                evento = ((int)EventType.RegistroNavio).ToString(),
+                evento = EventType.RegistroNavio.ToString(),
                 conteudo = JsonSerializer.Serialize(registroContent)
             };
 
@@ -115,14 +115,14 @@ namespace NavalBattle.Application.Services
             var ataqueContent = new AtaqueContent
             {
                 nomeNavio = _shipName,
-                posicaoAtaque = new MessagePosition { x = nextPosition.X, y = nextPosition.Y }
+                posicaoAtaque = new MessagePosition { X = nextPosition.PosX, Y = nextPosition.PosY }
             };
 
             var message = new Message
             {
                 correlationId = _lastLiberacaoAtaqueCorrelationId,
                 origem = _shipName,
-                evento = ((int)EventType.Ataque).ToString(),
+                evento = EventType.Ataque.ToString(),
                 conteudo = JsonSerializer.Serialize(ataqueContent)
             };
 
