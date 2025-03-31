@@ -23,7 +23,7 @@ var battleService = new BattleService(
     new CryptoService(settings.Ship.CryptoKey),
     settings.Ship.Name);
 
-var coordinator = new BattleCoordinator(battleService, messageService, settings.Ship.Name);
+var coordinator = new BattleCoordinator(battleService, messageService, settings.Ship.Name, settings.Ship.CryptoKey);
 await coordinator.StartAsync();
 
 Console.WriteLine("Batalha iniciada! Pressione qualquer tecla para sair...");

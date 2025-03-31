@@ -15,12 +15,14 @@ namespace NavalBattle.Application.Services
         private Random _random;
         private Ship _ship;
         private readonly AttackStrategy _attackStrategy;
+        private readonly string _cryptoKey;
 
-        public BattleCoordinator(IBattleService battleService, IMessageService messageService, string shipName)
+        public BattleCoordinator(IBattleService battleService, IMessageService messageService, string shipName, string cryptoKey)
         {
             _battleService = battleService;
             _messageService = messageService;
             _shipName = shipName;
+            _cryptoKey = cryptoKey;
             _random = new Random();
             _attackStrategy = new AttackStrategy();
         }
@@ -87,7 +89,7 @@ namespace NavalBattle.Application.Services
             } while (_ship != null && _ship.Positions.Any(p => p.PosX == posicaoCentral.X && p.PosY == posicaoCentral.Y));
 
             var orientacao = _random.Next(2) == 0 ? ShipOrientation.Vertical : ShipOrientation.Horizontal;
-            _ship = new Ship(_shipName, new Position(posicaoCentral.X, posicaoCentral.Y), orientacao, "chave");
+            _ship = new Ship(_shipName, new Position(posicaoCentral.X, posicaoCentral.Y), orientacao, _cryptoKey);
 
             var registroContent = new RegistroNavioContent
             {
