@@ -42,8 +42,23 @@ namespace NavalBattle.Application.Services
                     break;
 
                 case "LiberacaoAtaque":
-                    _lastLiberacaoAtaqueCorrelationId = message.correlationId;
-                    await RealizarAtaque();
+                    try
+                    {
+                        var liberacao = JsonSerializer.Deserialize<LiberacaoAtaqueContent>(message.conteudo);
+                        if (liberacao.nomeNavio == _shipName)
+                        {
+                            _lastLiberacaoAtaqueCorrelationId = message.correlationId;
+                            await RealizarAtaque();
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Não é nossa vez de atacar. Vez do navio: {liberacao.nomeNavio}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Erro ao processar liberação de ataque: {ex.Message}");
+                    }
                     break;
 
                 case "ResultadoAtaqueEfetuado":
