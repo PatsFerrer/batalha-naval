@@ -29,6 +29,10 @@ namespace NavalBattle.Application.Services
 
         public async Task StartAsync()
         {
+            // Registra o navio assim que a aplicação inicia
+            await RegistrarNavio();
+            
+            // Inicia a escuta de mensagens
             await _messageService.StartListeningAsync(async (message) => await HandleMessageAsync(message));
         }
 
@@ -64,6 +68,12 @@ namespace NavalBattle.Application.Services
                 case "ResultadoAtaqueEfetuado":
                     try
                     {
+                        if (message.origem != _shipName)
+                        {
+                            Console.WriteLine($"Ignorando resultado de ataque para o navio inimigo: {message.origem}");
+                            break;
+                        }
+
                         var resultado = JsonSerializer.Deserialize<ResultadoAtaqueContent>(message.conteudo);
                         Console.WriteLine($"Resultado do ataque: Acertou: {resultado.Acertou}, Distância: {resultado.DistanciaAproximada}");
 
