@@ -3,6 +3,7 @@ using NavalBattle.Application.Interfaces;
 using NavalBattle.Core.Enums;
 using NavalBattle.Core.Models;
 using NavalBattle.Core.Models.MessageContent;
+using NavalBattle.Core.Helpers;
 
 namespace NavalBattle.Application.Services
 {
@@ -38,6 +39,13 @@ namespace NavalBattle.Application.Services
 
         private async Task HandleMessageAsync(Message message)
         {
+            // Verifica se a mensagem é para nosso navio ou para todos
+            if (!string.IsNullOrEmpty(message.navioDestino) && message.navioDestino != _shipName)
+            {
+                Console.WriteLine($"Mensagem ignorada - Destinada para outro navio: {message.navioDestino}");
+                return;
+            }
+
             switch (message.evento)
             {
                 case "CampoLiberadoParaRegistro":
@@ -48,7 +56,7 @@ namespace NavalBattle.Application.Services
                 case "LiberacaoAtaque":
                     try
                     {
-                        var liberacao = JsonSerializer.Deserialize<LiberacaoAtaqueContent>(message.conteudo);
+                        var liberacao = message.conteudo.Deserialize<LiberacaoAtaqueContent>();
                         if (liberacao.nomeNavio == _shipName)
                         {
                             _lastLiberacaoAtaqueCorrelationId = message.correlationId;
@@ -74,7 +82,7 @@ namespace NavalBattle.Application.Services
                             break;
                         }
 
-                        var resultado = JsonSerializer.Deserialize<ResultadoAtaqueContent>(message.conteudo);
+                        var resultado = message.conteudo.Deserialize<ResultadoAtaqueContent>();
                         Console.WriteLine($"Resultado do ataque: Acertou: {resultado.Acertou}, Distância: {resultado.DistanciaAproximada}");
 
                         if (resultado.PositionMessage != null)
@@ -128,7 +136,7 @@ namespace NavalBattle.Application.Services
                 correlationId = Guid.NewGuid().ToString(),
                 origem = _shipName,
                 evento = EventType.RegistroNavio.ToString(),
-                conteudo = JsonSerializer.Serialize(registroContent)
+                conteudo = registroContent.Serialize()
             };
 
             await _messageService.SendMessageAsync(message);
@@ -150,7 +158,7 @@ namespace NavalBattle.Application.Services
                 correlationId = _lastLiberacaoAtaqueCorrelationId,
                 origem = _shipName,
                 evento = EventType.Ataque.ToString(),
-                conteudo = JsonSerializer.Serialize(ataqueContent)
+                conteudo = ataqueContent.Serialize()
             };
 
             await _messageService.SendMessageAsync(message);
