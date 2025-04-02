@@ -46,6 +46,24 @@ namespace NavalBattle.Application.Services
                 return;
             }
 
+            // Processa a pontuação dos navios se existir
+            if (!string.IsNullOrEmpty(message.pontuacaoNavios))
+            {
+                try
+                {
+                    var pontuacoes = message.pontuacaoNavios.Deserialize<Dictionary<string, int>>();
+                    Console.WriteLine("\nPontuação atual dos navios:");
+                    foreach (var pontuacao in pontuacoes)
+                    {
+                        Console.WriteLine($"Navio: {pontuacao.Key} - Pontos: {pontuacao.Value}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erro ao processar pontuação dos navios: {ex.Message}");
+                }
+            }
+
             switch (message.evento)
             {
                 case "CampoLiberadoParaRegistro":

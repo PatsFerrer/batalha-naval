@@ -18,5 +18,8 @@ namespace NavalBattle.Core.Models
 
         [JsonPropertyName("Conteudo")]
         public string conteudo { get; set; }
+
+        [JsonPropertyName("PontuacaoNavios")]
+        public string pontuacaoNavios { get; set; }
     }
 } 
