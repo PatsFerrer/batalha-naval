@@ -43,8 +43,8 @@ namespace NavalBattle.Application.Services.Implementations
 
         public async Task SendMessageAsync(Message message)
         {
-            // Criptografa apenas o conteúdo
-            var encryptedContent = _cryptoService.Encrypt(message.conteudo, message.correlationId);
+            // Comentando a criptografia temporariamente para testes
+            // var encryptedContent = _cryptoService.Encrypt(message.conteudo, message.correlationId);
 
             // Cria uma nova mensagem com o conteúdo criptografado
             var messageToSend = new Message
@@ -52,7 +52,8 @@ namespace NavalBattle.Application.Services.Implementations
                 correlationId = message.correlationId,
                 origem = message.origem,
                 evento = message.evento,
-                conteudo = encryptedContent
+                // conteudo = encryptedContent
+                conteudo = message.conteudo // Usando conteúdo sem criptografia
             };
 
             var messageContent = JsonSerializer.Serialize(messageToSend, _jsonOptions);
@@ -97,7 +98,7 @@ namespace NavalBattle.Application.Services.Implementations
                 try
                 {
                     // Tenta primeiro descriptografar apenas o conteúdo
-                    message = JsonSerializer.Deserialize<Message>(args.Message.Body.ToString());
+                    message = JsonSerializer.Deserialize<Message>(args.Message.Body.ToString(), _jsonOptions);
                     message.conteudo = _cryptoService.Decrypt(message.conteudo, message.correlationId);
                     Console.WriteLine("-------------------------------------");
                     Console.WriteLine("Mensagem recebida (conteúdo criptografado)");
@@ -105,7 +106,7 @@ namespace NavalBattle.Application.Services.Implementations
                 catch
                 {
                     // Se falhar a descriptografia, tenta ler a mensagem direta
-                    message = JsonSerializer.Deserialize<Message>(args.Message.Body.ToString());
+                    message = JsonSerializer.Deserialize<Message>(args.Message.Body.ToString(), _jsonOptions);
                     Console.WriteLine("Mensagem recebida (não criptografada)");
                     Console.WriteLine("-------------------------------------");
                 }
@@ -114,6 +115,7 @@ namespace NavalBattle.Application.Services.Implementations
                 Console.WriteLine($"Evento: {message?.evento ?? "Desconhecido"}");
                 Console.WriteLine($"Conteúdo: {message?.conteudo ?? "Vazio"}");
                 Console.WriteLine($"CorrelationId: {message?.correlationId ?? "Não informado"}");
+                Console.WriteLine($"NavioDestino: {message?.navioDestino ?? "Não informado"}");
 
                 if (message != null)
                 {
