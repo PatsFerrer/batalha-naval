@@ -4,9 +4,13 @@ namespace NavalBattle.Core.Models.MessageContent
 {
     public class ResultadoAtaqueContent
     {
-        [JsonPropertyName("Posicao")]
+        [JsonPropertyName("posicao")]
         public MessagePosition PositionMessage { get; set; }
+
+        [JsonPropertyName("acertou")]
         public bool Acertou { get; set; }
-        public int DistanciaAproximada { get; set; }
+
+        [JsonPropertyName("distanciaAproximada")]
+        public decimal DistanciaAproximada { get; set; }
     }
 } 

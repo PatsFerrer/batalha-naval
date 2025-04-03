@@ -47,20 +47,12 @@ namespace NavalBattle.Application.Services
             }
 
             // Processa a pontuação dos navios se existir
-            if (!string.IsNullOrEmpty(message.pontuacaoNavios))
+            if (message.pontuacaoNavios != null)
             {
-                try
+                Console.WriteLine("\nPontuação atual dos navios:");
+                foreach (var pontuacao in message.pontuacaoNavios)
                 {
-                    var pontuacoes = message.pontuacaoNavios.Deserialize<Dictionary<string, int>>();
-                    Console.WriteLine("\nPontuação atual dos navios:");
-                    foreach (var pontuacao in pontuacoes)
-                    {
-                        Console.WriteLine($"Navio: {pontuacao.Key} - Pontos: {pontuacao.Value}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Erro ao processar pontuação dos navios: {ex.Message}");
+                    Console.WriteLine($"Navio: {pontuacao.Key} - Pontos: {pontuacao.Value}");
                 }
             }
 
@@ -94,9 +86,9 @@ namespace NavalBattle.Application.Services
                 case "ResultadoAtaqueEfetuado":
                     try
                     {
-                        if (message.origem != _shipName)
+                        if (message.origem != "POSSEIDON" || message.navioDestino != _shipName)
                         {
-                            Console.WriteLine($"Ignorando resultado de ataque para o navio inimigo: {message.origem}");
+                            Console.WriteLine($"Ignorando resultado de ataque - não é para nosso navio");
                             break;
                         }
 
@@ -106,8 +98,8 @@ namespace NavalBattle.Application.Services
                         if (resultado.PositionMessage != null)
                         {
                             var position = new Position(resultado.PositionMessage.X, resultado.PositionMessage.Y);
-                            _attackStrategy.RecordAttack(position, resultado.Acertou);
-                            Console.WriteLine($"Registrado ataque em x:{position.PosX}, y:{position.PosY}, Acertou: {resultado.Acertou}");
+                            _attackStrategy.RecordAttack(position, resultado.Acertou, resultado.DistanciaAproximada);
+                            Console.WriteLine($"Registrado ataque em x:{position.PosX}, y:{position.PosY}, Acertou: {resultado.Acertou}, Distância: {resultado.DistanciaAproximada}");
                         }
                     }
                     catch (Exception ex)
@@ -175,8 +167,10 @@ namespace NavalBattle.Application.Services
             {
                 correlationId = _lastLiberacaoAtaqueCorrelationId,
                 origem = _shipName,
+                navioDestino = "", // Vazio pois é um ataque
                 evento = EventType.Ataque.ToString(),
-                conteudo = ataqueContent.Serialize()
+                conteudo = ataqueContent.Serialize(),
+                pontuacaoNavios = null
             };
 
             await _messageService.SendMessageAsync(message);

@@ -57,8 +57,8 @@ namespace NavalBattle.Application.Services.Implementations
             {
                 origem = _origin,
                 evento = ((int)EventType.Ataque).ToString(),
-                conteudo = JsonSerializer.Serialize(new AtaqueContent 
-                { 
+                conteudo = JsonSerializer.Serialize(new AtaqueContent
+                {
                     nomeNavio = _origin,
                     posicaoAtaque = new MessagePosition { X = position.PosX, Y = position.PosY }
                 }),
@@ -80,4 +80,4 @@ namespace NavalBattle.Application.Services.Implementations
             _canAttack = canAttack;
         }
     }
-} 
+}
