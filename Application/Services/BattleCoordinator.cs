@@ -86,6 +86,7 @@ namespace NavalBattle.Application.Services
                 case "ResultadoAtaqueEfetuado":
                     try
                     {
+                        // Verifica se a mensagem é do POSSEIDON e destinada para nosso navio
                         if (message.origem != "POSSEIDON" || message.navioDestino != _shipName)
                         {
                             Console.WriteLine($"Ignorando resultado de ataque - não é para nosso navio");

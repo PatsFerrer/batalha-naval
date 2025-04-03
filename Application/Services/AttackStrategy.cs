@@ -7,8 +7,11 @@ namespace NavalBattle.Application.Services
     private readonly Random _random;
     private Position _lastHitPosition;
     private Position _lastAttackPosition;
+    private Position _bestPosition;
     private bool _hasHit;
     private bool _isNearby;
+    private decimal _lastDistance;
+    private decimal _minDistance;
     private readonly List<Position> _attackHistory;
     private readonly HashSet<string> _attackedPositions;
     private readonly List<Position> _nearbyPositions;
@@ -19,11 +22,12 @@ namespace NavalBattle.Application.Services
       _attackHistory = new List<Position>();
       _attackedPositions = new HashSet<string>();
       _nearbyPositions = new List<Position>();
+      _minDistance = decimal.MaxValue;
     }
 
     public Position GetNextAttackPosition()
     {
-      Console.WriteLine($"Obtendo próxima posição. HasHit: {_hasHit}, LastHitPosition: {(_lastHitPosition != null ? $"X:{_lastHitPosition.PosX}, Y:{_lastHitPosition.PosY}" : "null")}, IsNearby: {_isNearby}");
+      Console.WriteLine($"Obtendo próxima posição. HasHit: {_hasHit}, LastHitPosition: {(_lastHitPosition != null ? $"X:{_lastHitPosition.PosX}, Y:{_lastHitPosition.PosY}" : "null")}, IsNearby: {_isNearby}, LastDistance: {_lastDistance}, MinDistance: {_minDistance}, BestPosition: {(_bestPosition != null ? $"X:{_bestPosition.PosX}, Y:{_bestPosition.PosY}" : "null")}");
       
       if (_hasHit && _lastHitPosition != null)
       {
@@ -31,13 +35,14 @@ namespace NavalBattle.Application.Services
         return GetAdjacentPosition();
       }
 
-      if (_isNearby && _lastAttackPosition != null)
+      // Se temos uma posição com distância menor que 7, continuamos focando nela
+      if (_minDistance <= 7 && _bestPosition != null)
       {
-        // Se estamos próximos do navio, vamos atacar em um raio de 7 posições
+        _isNearby = true;
         return GetNearbyPosition();
       }
 
-      // Se não acertamos ainda ou não temos posição de referência, ataca aleatoriamente
+      // Se não acertamos ainda e não temos uma posição próxima, ataca aleatoriamente
       return GetRandomPosition();
     }
 
@@ -58,22 +63,26 @@ namespace NavalBattle.Application.Services
         }
       }
 
-      // Se não há mais posições válidas próximas, volta para ataque aleatório
-      _isNearby = false;
-      return GetRandomPosition();
+      // Se não há mais posições válidas próximas, recalcula
+      CalculateNearbyPositions(_bestPosition);
+      return GetNearbyPosition();
     }
 
     private void CalculateNearbyPositions(Position center)
     {
       _nearbyPositions.Clear();
       
-      // Lista de posições possíveis em um raio de 7
-      for (int x = -7; x <= 7; x++)
+      // Usa a menor distância histórica como raio de busca
+      int radius = (int)Math.Ceiling(_minDistance);
+      Console.WriteLine($"Calculando posições próximas com raio {radius} (menor distância histórica) a partir de X:{center.PosX}, Y:{center.PosY}");
+      
+      // Lista de posições possíveis no raio especificado
+      for (int x = -radius; x <= radius; x++)
       {
-        for (int y = -7; y <= 7; y++)
+        for (int y = -radius; y <= radius; y++)
         {
-          // Verifica se a posição está dentro do raio de 7
-          if (Math.Sqrt(x * x + y * y) <= 7)
+          // Verifica se a posição está dentro do raio
+          if (Math.Sqrt(x * x + y * y) <= radius)
           {
             var newX = center.PosX + x;
             var newY = center.PosY + y;
@@ -143,6 +152,15 @@ namespace NavalBattle.Application.Services
       _attackHistory.Add(position);
       _attackedPositions.Add($"{position.PosX},{position.PosY}");
       _lastAttackPosition = position;
+      _lastDistance = distanciaAproximada;
+
+      // Atualiza a menor distância histórica e a melhor posição se a atual for menor
+      if (distanciaAproximada < _minDistance)
+      {
+        _minDistance = distanciaAproximada;
+        _bestPosition = position;
+        Console.WriteLine($">>> NOVA MENOR DISTÂNCIA HISTÓRICA: {_minDistance} em X:{position.PosX}, Y:{position.PosY}");
+      }
 
       Console.WriteLine($">>> Registrando ataque em X:{position.PosX}, Y:{position.PosY}, Acertou: {hit}, Distância: {distanciaAproximada}");
 
@@ -154,11 +172,11 @@ namespace NavalBattle.Application.Services
         _nearbyPositions.Clear();
         Console.WriteLine($">>> ACERTO CONFIRMADO! Próximo ataque será ao redor de X:{position.PosX}, Y:{position.PosY}");
       }
-      else if (distanciaAproximada <= 7)
+      else if (_minDistance <= 7)
       {
         _isNearby = true;
-        CalculateNearbyPositions(position);
-        Console.WriteLine($">>> NAVIO PRÓXIMO DETECTADO! Distância: {distanciaAproximada}. Próximo ataque será próximo a X:{position.PosX}, Y:{position.PosY}");
+        CalculateNearbyPositions(_bestPosition);
+        Console.WriteLine($">>> NAVIO PRÓXIMO DETECTADO! Distância mínima: {_minDistance}. Próximo ataque será próximo a X:{_bestPosition.PosX}, Y:{_bestPosition.PosY}");
       }
       else
       {
