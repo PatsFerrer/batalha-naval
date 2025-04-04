@@ -27,7 +27,9 @@ namespace NavalBattle.Application.Services
 
     public Position GetNextAttackPosition()
     {
+      Console.ForegroundColor = ConsoleColor.Cyan;
       Console.WriteLine($"Obtendo próxima posição. HasHit: {_hasHit}, LastHitPosition: {(_lastHitPosition != null ? $"X:{_lastHitPosition.PosX}, Y:{_lastHitPosition.PosY}" : "null")}, IsNearby: {_isNearby}, LastDistance: {_lastDistance}, MinDistance: {_minDistance}, BestPosition: {(_bestPosition != null ? $"X:{_bestPosition.PosX}, Y:{_bestPosition.PosY}" : "null")}");
+      Console.ResetColor();
       
       if (_hasHit && _lastHitPosition != null)
       {
@@ -65,7 +67,35 @@ namespace NavalBattle.Application.Services
 
       // Se não há mais posições válidas próximas, recalcula
       CalculateNearbyPositions(_bestPosition);
-      return GetNearbyPosition();
+      
+      // Se ainda não há posições válidas após recalcular, volta para ataque aleatório
+      if (!_nearbyPositions.Any())
+      {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("Não há mais posições válidas próximas, voltando para ataque aleatório");
+        Console.ResetColor();
+        _isNearby = false;
+        return GetRandomPosition();
+      }
+
+      // Tenta novamente com as novas posições calculadas
+      var newValidPositions = _nearbyPositions
+          .Where(p => p.IsValid() && !_attackedPositions.Contains($"{p.PosX},{p.PosY}"))
+          .ToList();
+
+      if (newValidPositions.Any())
+      {
+        var position = newValidPositions[_random.Next(newValidPositions.Count)];
+        _nearbyPositions.Remove(position);
+        return position;
+      }
+
+      // Se ainda não encontrou posições válidas, volta para ataque aleatório
+      Console.ForegroundColor = ConsoleColor.Yellow;
+      Console.WriteLine("Não foi possível encontrar posições válidas após recalcular, voltando para ataque aleatório");
+      Console.ResetColor();
+      _isNearby = false;
+      return GetRandomPosition();
     }
 
     private void CalculateNearbyPositions(Position center)
@@ -74,7 +104,9 @@ namespace NavalBattle.Application.Services
       
       // Usa a menor distância histórica como raio de busca
       int radius = (int)Math.Ceiling(_minDistance);
+      Console.ForegroundColor = ConsoleColor.Cyan;
       Console.WriteLine($"Calculando posições próximas com raio {radius} (menor distância histórica) a partir de X:{center.PosX}, Y:{center.PosY}");
+      Console.ResetColor();
       
       // Lista de posições possíveis no raio especificado
       for (int x = -radius; x <= radius; x++)
@@ -101,7 +133,9 @@ namespace NavalBattle.Application.Services
       _nearbyPositions.Clear();
       _nearbyPositions.AddRange(shuffledPositions);
       
+      Console.ForegroundColor = ConsoleColor.Cyan;
       Console.WriteLine($"Calculadas {_nearbyPositions.Count} posições próximas para ataque");
+      Console.ResetColor();
     }
 
     private Position GetAdjacentPosition()
@@ -141,7 +175,9 @@ namespace NavalBattle.Application.Services
             _random.Next(0, 100),
             _random.Next(0, 30)
         );
+        Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine($"Tentando posição: X={position.PosX}, Y={position.PosY}");
+        Console.ResetColor();
       } while (_attackedPositions.Contains($"{position.PosX},{position.PosY}"));
 
       return position;
@@ -149,7 +185,7 @@ namespace NavalBattle.Application.Services
 
     public void RecordAttack(Position position, bool hit, decimal distanciaAproximada = 0)
     {
-      _attackHistory.Add(position);
+      // Registra a posição como atacada apenas quando recebemos o resultado do controlador
       _attackedPositions.Add($"{position.PosX},{position.PosY}");
       _lastAttackPosition = position;
       _lastDistance = distanciaAproximada;
@@ -159,7 +195,9 @@ namespace NavalBattle.Application.Services
       {
         _minDistance = distanciaAproximada;
         _bestPosition = position;
+        Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine($">>> NOVA MENOR DISTÂNCIA HISTÓRICA: {_minDistance} em X:{position.PosX}, Y:{position.PosY}");
+        Console.ResetColor();
       }
 
       Console.WriteLine($">>> Registrando ataque em X:{position.PosX}, Y:{position.PosY}, Acertou: {hit}, Distância: {distanciaAproximada}");
@@ -170,13 +208,17 @@ namespace NavalBattle.Application.Services
         _lastHitPosition = position;
         _isNearby = false;
         _nearbyPositions.Clear();
+        Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine($">>> ACERTO CONFIRMADO! Próximo ataque será ao redor de X:{position.PosX}, Y:{position.PosY}");
+        Console.ResetColor();
       }
       else if (_minDistance <= 7)
       {
         _isNearby = true;
         CalculateNearbyPositions(_bestPosition);
+        Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine($">>> NAVIO PRÓXIMO DETECTADO! Distância mínima: {_minDistance}. Próximo ataque será próximo a X:{_bestPosition.PosX}, Y:{_bestPosition.PosY}");
+        Console.ResetColor();
       }
       else
       {
@@ -184,7 +226,9 @@ namespace NavalBattle.Application.Services
         _lastHitPosition = null;
         _isNearby = false;
         _nearbyPositions.Clear();
+        Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine(">>> Sem acertos ainda, continuando busca aleatória");
+        Console.ResetColor();
       }
     }
 

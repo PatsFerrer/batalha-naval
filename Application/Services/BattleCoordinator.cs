@@ -42,18 +42,22 @@ namespace NavalBattle.Application.Services
             // Verifica se a mensagem é para nosso navio ou para todos
             if (!string.IsNullOrEmpty(message.navioDestino) && message.navioDestino != _shipName)
             {
+                Console.ForegroundColor = ConsoleColor.Gray;
                 Console.WriteLine($"Mensagem ignorada - Destinada para outro navio: {message.navioDestino}");
+                Console.ResetColor();
                 return;
             }
 
             // Processa a pontuação dos navios se existir
             if (message.pontuacaoNavios != null)
             {
+                Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.WriteLine("\nPontuação atual dos navios:");
                 foreach (var pontuacao in message.pontuacaoNavios)
                 {
                     Console.WriteLine($"Navio: {pontuacao.Key} - Pontos: {pontuacao.Value}");
                 }
+                Console.ResetColor();
             }
 
             switch (message.evento)
@@ -74,12 +78,16 @@ namespace NavalBattle.Application.Services
                         }
                         else
                         {
+                            Console.ForegroundColor = ConsoleColor.Yellow;
                             Console.WriteLine($"Não é nossa vez de atacar. Vez do navio: {liberacao.nomeNavio}");
+                            Console.ResetColor();
                         }
                     }
                     catch (Exception ex)
                     {
+                        Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine($"Erro ao processar liberação de ataque: {ex.Message}");
+                        Console.ResetColor();
                     }
                     break;
 
@@ -89,12 +97,24 @@ namespace NavalBattle.Application.Services
                         // Verifica se a mensagem é do POSSEIDON e destinada para nosso navio
                         if (message.origem != "POSSEIDON" || message.navioDestino != _shipName)
                         {
+                            Console.ForegroundColor = ConsoleColor.Gray;
                             Console.WriteLine($"Ignorando resultado de ataque - não é para nosso navio");
+                            Console.ResetColor();
                             break;
                         }
 
                         var resultado = message.conteudo.Deserialize<ResultadoAtaqueContent>();
-                        Console.WriteLine($"Resultado do ataque: Acertou: {resultado.Acertou}, Distância: {resultado.DistanciaAproximada}");
+                        if (resultado.Acertou)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.WriteLine($"Resultado do ataque: ACERTO! Distância: {resultado.DistanciaAproximada}");
+                        }
+                        else
+                        {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine($"Resultado do ataque: ERRO! Distância: {resultado.DistanciaAproximada}");
+                        }
+                        Console.ResetColor();
 
                         if (resultado.PositionMessage != null)
                         {
@@ -105,16 +125,22 @@ namespace NavalBattle.Application.Services
                     }
                     catch (Exception ex)
                     {
+                        Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine($"Erro ao processar resultado do ataque: {ex.Message}");
+                        Console.ResetColor();
                     }
                     break;
 
                 case "NavioAbatido":
+                    Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("Nosso navio foi abatido!");
+                    Console.ResetColor();
                     break;
 
                 case "Vitoria":
+                    Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("Vitória! Ganhamos a batalha!");
+                    Console.ResetColor();
                     break;
             }
         }
@@ -175,6 +201,9 @@ namespace NavalBattle.Application.Services
             };
 
             await _messageService.SendMessageAsync(message);
+            
+            // Não registramos a posição aqui, apenas quando recebermos o ResultadoAtaqueEfetuado
+            Console.WriteLine($"Ataque enviado para X:{nextPosition.PosX}, Y:{nextPosition.PosY}");
         }
     }
 }
