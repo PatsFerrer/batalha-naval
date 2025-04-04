@@ -3,7 +3,6 @@ appsettings.Development.json
 appsettings.Production.json
 *.Development.json
 *.Production.json
-appsettings.json
 
 # Arquivos de ambiente
 .env
