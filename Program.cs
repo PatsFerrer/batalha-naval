@@ -16,11 +16,11 @@ var messageService = new MessageService(
     settings.ServiceBus.ConnectionString,
     settings.ServiceBus.TopicName,
     settings.ServiceBus.SubscriptionName,
-    new CryptoService(settings.Ship.CryptoKey));
+    new CryptoService(settings.Ship.CryptoKey, settings.Ship.Salt));
 
 var battleService = new BattleService(
     messageService,
-    new CryptoService(settings.Ship.CryptoKey),
+    new CryptoService(settings.Ship.CryptoKey, settings.Ship.Salt),
     settings.Ship.Name);
 
 var coordinator = new BattleCoordinator(battleService, messageService, settings.Ship.Name, settings.Ship.CryptoKey);
