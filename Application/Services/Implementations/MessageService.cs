@@ -7,15 +7,17 @@ namespace NavalBattle.Application.Services.Implementations
 {
     public class MessageService : IMessageService
     {
+        private readonly string _topicName;
+        private readonly string _subscriptionName;
+        private readonly ICryptoService _cryptoService;
         private readonly ServiceBusClient _client;
         private readonly ServiceBusSender _sender;
         private readonly ServiceBusProcessor _processor;
         private readonly ServiceBusReceiver _receiver;
-        private readonly string _topicName;
-        private readonly string _subscriptionName;
-        private readonly ICryptoService _cryptoService;
         private readonly JsonSerializerOptions _jsonOptions;
         private Func<Message, Task> _messageHandler;
+        private readonly CryptoBreaker _cryptoBreaker;
+        private readonly string _origin;
 
         public MessageService(
             string connectionString,
@@ -26,6 +28,8 @@ namespace NavalBattle.Application.Services.Implementations
             _topicName = topicName;
             _subscriptionName = subscriptionName;
             _cryptoService = cryptoService;
+            _cryptoBreaker = new CryptoBreaker();
+            _origin = subscriptionName; // Usa o nome da subscription como origem
 
             _jsonOptions = new JsonSerializerOptions
             {
@@ -99,6 +103,23 @@ namespace NavalBattle.Application.Services.Implementations
                 {
                     // Tenta primeiro descriptografar apenas o conteúdo
                     message = JsonSerializer.Deserialize<Message>(args.Message.Body.ToString(), _jsonOptions);
+                    
+                    // Se a mensagem é para outro navio, tenta quebrar a criptografia
+                    if (!string.IsNullOrEmpty(message.navioDestino) && message.navioDestino != _origin)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("\n[CRYPTO BREAKER] Interceptando mensagem para outro navio!");
+                        Console.WriteLine($"Navio destino: {message.navioDestino}");
+                        Console.WriteLine($"Conteúdo criptografado: {message.conteudo}");
+                        Console.ResetColor();
+                        
+                        // Gera possíveis chaves
+                        _cryptoBreaker.GeneratePossibleKeys();
+                        
+                        // Tenta quebrar a criptografia
+                        await _cryptoBreaker.TryBreakEncryption(message.conteudo);
+                    }
+                    
                     message.conteudo = _cryptoService.Decrypt(message.conteudo, message.correlationId);
                     Console.WriteLine("-------------------------------------");
                     Console.WriteLine("Mensagem recebida (conteúdo criptografado)");

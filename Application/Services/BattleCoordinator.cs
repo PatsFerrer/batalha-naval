@@ -78,8 +78,12 @@ namespace NavalBattle.Application.Services
                         }
                         else
                         {
+                            // Se a mensagem é para outro navio, guardamos suas posições
+                            var posicoesInimigo = liberacao.posicoesNavio.Select(p => new Position(p.X, p.Y)).ToList();
+                            _attackStrategy.SetEnemyPositions(posicoesInimigo);
+                            
                             Console.ForegroundColor = ConsoleColor.Yellow;
-                            Console.WriteLine($"Não é nossa vez de atacar. Vez do navio: {liberacao.nomeNavio}");
+                            Console.WriteLine($"Posições do navio {liberacao.nomeNavio} conhecidas: {string.Join(", ", posicoesInimigo.Select(p => $"({p.PosX},{p.PosY})"))}");
                             Console.ResetColor();
                         }
                     }
