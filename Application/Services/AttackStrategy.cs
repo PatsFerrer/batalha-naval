@@ -70,7 +70,20 @@ namespace NavalBattle.Application.Services
       if (_minDistance <= 7 && _bestPosition != null)
       {
         _isNearby = true;
-        return GetNearbyPosition();
+        var nearbyPosition = GetNearbyPosition();
+        if (nearbyPosition != null)
+        {
+          return nearbyPosition;
+        }
+      }
+
+      // Se não encontrou posições próximas válidas, tenta atacar a melhor posição conhecida
+      if (_bestPosition != null && !_attackedPositions.Contains($"{_bestPosition.PosX},{_bestPosition.PosY}"))
+      {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine($"Voltando para melhor posição conhecida: X:{_bestPosition.PosX}, Y:{_bestPosition.PosY}");
+        Console.ResetColor();
+        return _bestPosition;
       }
 
       // Se não acertamos ainda e não temos uma posição próxima, ataca aleatoriamente
@@ -131,10 +144,10 @@ namespace NavalBattle.Application.Services
     {
       _nearbyPositions.Clear();
       
-      // Usa a menor distância histórica como raio de busca
-      int radius = (int)Math.Ceiling(_minDistance);
+      // Garante um raio mínimo de busca mesmo quando a distância é 0
+      int radius = Math.Max((int)Math.Ceiling(_minDistance), 1);
       Console.ForegroundColor = ConsoleColor.Cyan;
-      Console.WriteLine($"Calculando posições próximas com raio {radius} (menor distância histórica) a partir de X:{center.PosX}, Y:{center.PosY}");
+      Console.WriteLine($"Calculando posições próximas com raio {radius} a partir de X:{center.PosX}, Y:{center.PosY}");
       Console.ResetColor();
       
       // Lista de posições possíveis no raio especificado
