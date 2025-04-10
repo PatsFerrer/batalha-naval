@@ -47,17 +47,15 @@ namespace NavalBattle.Application.Services.Implementations
 
         public async Task SendMessageAsync(Message message)
         {
-            // Comentando a criptografia temporariamente para testes
-            // var encryptedContent = _cryptoService.Encrypt(message.conteudo, message.correlationId);
-
             // Cria uma nova mensagem com o conteúdo criptografado
+            var encryptedContent = _cryptoService.Encrypt(message.conteudo, message.correlationId);
+
             var messageToSend = new Message
             {
                 correlationId = message.correlationId,
                 origem = message.origem,
                 evento = message.evento,
-                // conteudo = encryptedContent
-                conteudo = message.conteudo // Usando conteúdo sem criptografia
+                conteudo = encryptedContent
             };
 
             var messageContent = JsonSerializer.Serialize(messageToSend, _jsonOptions);
