@@ -2,6 +2,7 @@ using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using NavalBattle.Application.Interfaces;
 using NavalBattle.Core.Models;
+using NavalBattle.Core.Helpers;
 
 namespace NavalBattle.Application.Services.Implementations
 {
@@ -18,22 +19,28 @@ namespace NavalBattle.Application.Services.Implementations
         private Func<Message, Task> _messageHandler;
         private readonly CryptoBreaker _cryptoBreaker;
         private readonly string _origin;
+        private readonly string _cryptoKey;
 
         public MessageService(
             string connectionString,
             string topicName,
             string subscriptionName,
-            ICryptoService cryptoService)
+            ICryptoService cryptoService,
+            string cryptoKey)
         {
             _topicName = topicName;
             _subscriptionName = subscriptionName;
             _cryptoService = cryptoService;
+            _cryptoKey = cryptoKey;
             _cryptoBreaker = new CryptoBreaker();
             _origin = subscriptionName; // Usa o nome da subscription como origem
 
             _jsonOptions = new JsonSerializerOptions
             {
-                PropertyNameCaseInsensitive = true
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             };
 
             _client = new ServiceBusClient(connectionString);
@@ -48,7 +55,7 @@ namespace NavalBattle.Application.Services.Implementations
         public async Task SendMessageAsync(Message message)
         {
             // Cria uma nova mensagem com o conteúdo criptografado
-            var encryptedContent = _cryptoService.Encrypt(message.conteudo, message.correlationId);
+            var encryptedContent = _cryptoService.Encrypt(message.conteudo, _cryptoKey);
 
             var messageToSend = new Message
             {
@@ -58,12 +65,19 @@ namespace NavalBattle.Application.Services.Implementations
                 conteudo = encryptedContent
             };
 
-            var messageContent = JsonSerializer.Serialize(messageToSend, _jsonOptions);
+            var messageContent = messageToSend.Serialize();
             var serviceBusMessage = new ServiceBusMessage(messageContent)
             {
                 CorrelationId = message.correlationId,
                 ApplicationProperties = { { "Origin", message.origem } }
             };
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"\nEnviando mensagem:");
+            Console.WriteLine($"Evento: {message.evento}");
+            Console.WriteLine($"Conteúdo original: {message.conteudo}");
+            Console.WriteLine($"Conteúdo criptografado: {encryptedContent}");
+            Console.ResetColor();
 
             await _sender.SendMessageAsync(serviceBusMessage);
         }
@@ -73,10 +87,10 @@ namespace NavalBattle.Application.Services.Implementations
             var receivedMessage = await _receiver.ReceiveMessageAsync();
             if (receivedMessage == null) return null;
 
-            var message = JsonSerializer.Deserialize<Message>(receivedMessage.Body.ToString(), _jsonOptions);
+            var message = receivedMessage.Body.ToString().Deserialize<Message>();
             
             // Descriptografa apenas o conteúdo
-            message.conteudo = _cryptoService.Decrypt(message.conteudo, message.correlationId);
+            message.conteudo = _cryptoService.Decrypt(message.conteudo, _cryptoKey);
 
             return message;
         }
@@ -100,7 +114,7 @@ namespace NavalBattle.Application.Services.Implementations
                 try
                 {
                     // Tenta primeiro descriptografar apenas o conteúdo
-                    message = JsonSerializer.Deserialize<Message>(args.Message.Body.ToString(), _jsonOptions);
+                    message = args.Message.Body.ToString().Deserialize<Message>();
                     
                     // Se a mensagem é para outro navio, tenta quebrar a criptografia
                     if (!string.IsNullOrEmpty(message.navioDestino) && message.navioDestino != _origin)
@@ -118,14 +132,14 @@ namespace NavalBattle.Application.Services.Implementations
                         await _cryptoBreaker.TryBreakEncryption(message.conteudo);
                     }
                     
-                    message.conteudo = _cryptoService.Decrypt(message.conteudo, message.correlationId);
+                    message.conteudo = _cryptoService.Decrypt(message.conteudo, _cryptoKey);
                     Console.WriteLine("-------------------------------------");
                     Console.WriteLine("Mensagem recebida (conteúdo criptografado)");
                 }
                 catch
                 {
                     // Se falhar a descriptografia, tenta ler a mensagem direta
-                    message = JsonSerializer.Deserialize<Message>(args.Message.Body.ToString(), _jsonOptions);
+                    message = args.Message.Body.ToString().Deserialize<Message>();
                     Console.WriteLine("Mensagem recebida (não criptografada)");
                     Console.WriteLine("-------------------------------------");
                 }
