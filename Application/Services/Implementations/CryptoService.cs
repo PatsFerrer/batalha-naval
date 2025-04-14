@@ -31,7 +31,7 @@ namespace NavalBattle.Application.Services.Implementations
 
             using (Aes aes = Aes.Create())
             {
-                aes.Key = GetKeyBytes(key);
+                aes.Key = Encoding.UTF8.GetBytes(key);
                 aes.IV = iv;
 
                 ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
@@ -58,7 +58,7 @@ namespace NavalBattle.Application.Services.Implementations
 
                 using (Aes aes = Aes.Create())
                 {
-                    aes.Key = GetKeyBytes(key);
+                    aes.Key = Encoding.UTF8.GetBytes(key);
                     aes.IV = iv;
                     ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
 

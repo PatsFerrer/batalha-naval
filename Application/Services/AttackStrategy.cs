@@ -214,8 +214,8 @@ namespace NavalBattle.Application.Services
       do
       {
         position = new Position(
-            _random.Next(0, 100),
-            _random.Next(0, 30)
+            _random.Next(1, 100),
+            _random.Next(1, 30)
         );
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine($"Tentando posição: X={position.PosX}, Y={position.PosY}");

@@ -4,6 +4,7 @@ using NavalBattle.Core.Enums;
 using NavalBattle.Core.Models;
 using NavalBattle.Core.Models.MessageContent;
 using NavalBattle.Core.Helpers;
+using NavalBattle.Application.Services.Implementations;
 
 namespace NavalBattle.Application.Services
 {
@@ -59,6 +60,8 @@ namespace NavalBattle.Application.Services
                 }
                 Console.ResetColor();
             }
+
+message.conteudo = new CryptoService(_cryptoKey).Decrypt(message.conteudo, _cryptoKey);
 
             switch (message.evento)
             {
