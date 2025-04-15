@@ -16,7 +16,8 @@ var messageService = new MessageService(
     settings.ServiceBus.ConnectionString,
     settings.ServiceBus.TopicName,
     settings.ServiceBus.SubscriptionName,
-    new CryptoService(settings.Ship.CryptoKey));
+    new CryptoService(settings.Ship.CryptoKey),
+    settings.Ship.CryptoKey);
 
 var battleService = new BattleService(
     messageService,

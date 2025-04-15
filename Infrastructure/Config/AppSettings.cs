@@ -17,5 +17,6 @@ namespace NavalBattle.Infrastructure.Config
     {
         public string Name { get; set; }
         public string CryptoKey { get; set; }
+        public string Salt { get; set; }
     }
 } 

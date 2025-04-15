@@ -18,7 +18,7 @@ namespace NavalBattle.Core.Models
 
         public bool IsValid()
         {
-            return PosX >= 0 && PosX < 100 && PosY >= 0 && PosY < 30;
+            return PosX > 0 && PosX <= 100 && PosY > 0 && PosY <= 30;
         }
     }
 } 

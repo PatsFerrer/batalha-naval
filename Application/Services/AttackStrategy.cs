@@ -15,6 +15,7 @@ namespace NavalBattle.Application.Services
     private readonly List<Position> _attackHistory;
     private readonly HashSet<string> _attackedPositions;
     private readonly List<Position> _nearbyPositions;
+    private List<Position> _enemyShipPositions;
 
     public AttackStrategy()
     {
@@ -22,7 +23,20 @@ namespace NavalBattle.Application.Services
       _attackHistory = new List<Position>();
       _attackedPositions = new HashSet<string>();
       _nearbyPositions = new List<Position>();
+      _enemyShipPositions = new List<Position>();
       _minDistance = decimal.MaxValue;
+    }
+
+    public void SetEnemyPositions(List<Position> positions)
+    {
+      _enemyShipPositions = positions;
+      Console.ForegroundColor = ConsoleColor.Green;
+      Console.WriteLine($">>> POSIÇÕES DO NAVIO INIMIGO DESCRIPTOGRAFADAS! Total: {positions.Count}");
+      foreach (var pos in positions)
+      {
+        Console.WriteLine($"- X:{pos.PosX}, Y:{pos.PosY}");
+      }
+      Console.ResetColor();
     }
 
     public Position GetNextAttackPosition()
@@ -31,6 +45,21 @@ namespace NavalBattle.Application.Services
       Console.WriteLine($"Obtendo próxima posição. HasHit: {_hasHit}, LastHitPosition: {(_lastHitPosition != null ? $"X:{_lastHitPosition.PosX}, Y:{_lastHitPosition.PosY}" : "null")}, IsNearby: {_isNearby}, LastDistance: {_lastDistance}, MinDistance: {_minDistance}, BestPosition: {(_bestPosition != null ? $"X:{_bestPosition.PosX}, Y:{_bestPosition.PosY}" : "null")}");
       Console.ResetColor();
       
+      // Se temos posições do navio inimigo descriptografadas, atacamos elas
+      if (_enemyShipPositions.Any())
+      {
+        var posicaoNaoAtacada = _enemyShipPositions
+            .FirstOrDefault(p => !_attackedPositions.Contains($"{p.PosX},{p.PosY}"));
+        
+        if (posicaoNaoAtacada != null)
+        {
+          Console.ForegroundColor = ConsoleColor.Green;
+          Console.WriteLine($"Atacando posição conhecida do inimigo: X:{posicaoNaoAtacada.PosX}, Y:{posicaoNaoAtacada.PosY}");
+          Console.ResetColor();
+          return posicaoNaoAtacada;
+        }
+      }
+
       if (_hasHit && _lastHitPosition != null)
       {
         // Se acertamos, vamos atacar nas posições adjacentes
@@ -41,7 +70,20 @@ namespace NavalBattle.Application.Services
       if (_minDistance <= 7 && _bestPosition != null)
       {
         _isNearby = true;
-        return GetNearbyPosition();
+        var nearbyPosition = GetNearbyPosition();
+        if (nearbyPosition != null)
+        {
+          return nearbyPosition;
+        }
+      }
+
+      // Se não encontrou posições próximas válidas, tenta atacar a melhor posição conhecida
+      if (_bestPosition != null && !_attackedPositions.Contains($"{_bestPosition.PosX},{_bestPosition.PosY}"))
+      {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine($"Voltando para melhor posição conhecida: X:{_bestPosition.PosX}, Y:{_bestPosition.PosY}");
+        Console.ResetColor();
+        return _bestPosition;
       }
 
       // Se não acertamos ainda e não temos uma posição próxima, ataca aleatoriamente
@@ -102,10 +144,10 @@ namespace NavalBattle.Application.Services
     {
       _nearbyPositions.Clear();
       
-      // Usa a menor distância histórica como raio de busca
-      int radius = (int)Math.Ceiling(_minDistance);
+      // Garante um raio mínimo de busca mesmo quando a distância é 0
+      int radius = Math.Max((int)Math.Ceiling(_minDistance), 1);
       Console.ForegroundColor = ConsoleColor.Cyan;
-      Console.WriteLine($"Calculando posições próximas com raio {radius} (menor distância histórica) a partir de X:{center.PosX}, Y:{center.PosY}");
+      Console.WriteLine($"Calculando posições próximas com raio {radius} a partir de X:{center.PosX}, Y:{center.PosY}");
       Console.ResetColor();
       
       // Lista de posições possíveis no raio especificado
@@ -172,8 +214,8 @@ namespace NavalBattle.Application.Services
       do
       {
         position = new Position(
-            _random.Next(0, 100),
-            _random.Next(0, 30)
+            _random.Next(1, 100),
+            _random.Next(1, 30)
         );
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine($"Tentando posição: X={position.PosX}, Y={position.PosY}");
