@@ -14,14 +14,17 @@ namespace NavalBattle.Application.Services
     private decimal _minDistance;
     private readonly List<Position> _attackHistory;
     private readonly HashSet<string> _attackedPositions;
+    private readonly HashSet<string> _discardedPositions;
     private readonly List<Position> _nearbyPositions;
     private List<Position> _enemyShipPositions;
+    private const int PROXIMITY_RADIUS = 7;
 
     public AttackStrategy()
     {
       _random = new Random();
       _attackHistory = new List<Position>();
       _attackedPositions = new HashSet<string>();
+      _discardedPositions = new HashSet<string>();
       _nearbyPositions = new List<Position>();
       _enemyShipPositions = new List<Position>();
       _minDistance = decimal.MaxValue;
@@ -96,7 +99,9 @@ namespace NavalBattle.Application.Services
       if (_nearbyPositions.Any())
       {
         var validPositions = _nearbyPositions
-            .Where(p => p.IsValid() && !_attackedPositions.Contains($"{p.PosX},{p.PosY}"))
+            .Where(p => p.IsValid() && 
+                       !_attackedPositions.Contains($"{p.PosX},{p.PosY}") &&
+                       !_discardedPositions.Contains($"{p.PosX},{p.PosY}"))
             .ToList();
 
         if (validPositions.Any())
@@ -122,7 +127,9 @@ namespace NavalBattle.Application.Services
 
       // Tenta novamente com as novas posições calculadas
       var newValidPositions = _nearbyPositions
-          .Where(p => p.IsValid() && !_attackedPositions.Contains($"{p.PosX},{p.PosY}"))
+          .Where(p => p.IsValid() && 
+                     !_attackedPositions.Contains($"{p.PosX},{p.PosY}") &&
+                     !_discardedPositions.Contains($"{p.PosX},{p.PosY}"))
           .ToList();
 
       if (newValidPositions.Any())
@@ -162,7 +169,9 @@ namespace NavalBattle.Application.Services
             var newY = center.PosY + y;
             var position = new Position(newX, newY);
             
-            if (position.IsValid() && !_attackedPositions.Contains($"{newX},{newY}"))
+            if (position.IsValid() && 
+                !_attackedPositions.Contains($"{newX},{newY}") &&
+                !_discardedPositions.Contains($"{newX},{newY}"))
             {
               _nearbyPositions.Add(position);
             }
@@ -191,9 +200,11 @@ namespace NavalBattle.Application.Services
         new Position(_lastHitPosition.PosX + 1, _lastHitPosition.PosY)  // direita
       };
 
-      // Filtra posições válidas e não atacadas
+      // Filtra posições válidas, não atacadas e não descartadas
       var validPositions = possiblePositions
-          .Where(p => p.IsValid() && !_attackedPositions.Contains($"{p.PosX},{p.PosY}"))
+          .Where(p => p.IsValid() && 
+                     !_attackedPositions.Contains($"{p.PosX},{p.PosY}") &&
+                     !_discardedPositions.Contains($"{p.PosX},{p.PosY}"))
           .ToList();
 
       if (validPositions.Any())
@@ -220,7 +231,8 @@ namespace NavalBattle.Application.Services
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine($"Tentando posição: X={position.PosX}, Y={position.PosY}");
         Console.ResetColor();
-      } while (_attackedPositions.Contains($"{position.PosX},{position.PosY}"));
+      } while (_attackedPositions.Contains($"{position.PosX},{position.PosY}") || 
+               _discardedPositions.Contains($"{position.PosX},{position.PosY}"));
 
       return position;
     }
@@ -231,6 +243,12 @@ namespace NavalBattle.Application.Services
       _attackedPositions.Add($"{position.PosX},{position.PosY}");
       _lastAttackPosition = position;
       _lastDistance = distanciaAproximada;
+
+      // Se a distância for 1000 E não tivermos uma distância menor que 7, descarta as posições
+      if (distanciaAproximada >= 1000 && _minDistance > 7)
+      {
+        DiscardPositionsAroundAttack(position);
+      }
 
       // Atualiza a menor distância histórica e a melhor posição se a atual for menor
       if (distanciaAproximada < _minDistance)
@@ -272,6 +290,25 @@ namespace NavalBattle.Application.Services
         Console.WriteLine(">>> Sem acertos ainda, continuando busca aleatória");
         Console.ResetColor();
       }
+    }
+
+    private void DiscardPositionsAroundAttack(Position position)
+    {
+      // Descarta posições no eixo X (7 posições para cada lado)
+      for (int i = Math.Max(1, position.PosX - PROXIMITY_RADIUS); i <= Math.Min(100, position.PosX + PROXIMITY_RADIUS); i++)
+      {
+        _discardedPositions.Add($"{i},{position.PosY}");
+      }
+
+      // Descarta posições no eixo Y (7 posições para cada lado)
+      for (int j = Math.Max(1, position.PosY - PROXIMITY_RADIUS); j <= Math.Min(30, position.PosY + PROXIMITY_RADIUS); j++)
+      {
+        _discardedPositions.Add($"{position.PosX},{j}");
+      }
+
+      Console.ForegroundColor = ConsoleColor.Red;
+      Console.WriteLine($">>> Descartando posições ao redor de X:{position.PosX}, Y:{position.PosY}");
+      Console.ResetColor();
     }
 
     public bool HasHit()
