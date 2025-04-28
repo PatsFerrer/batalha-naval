@@ -1,8 +1,6 @@
 # Batalha Naval
 
-## Descrição
-
-O projeto "Batalha Naval" é uma implementação de um jogo de batalha naval, onde os jogadores controlam navios e tentam atacar os navios inimigos em um tabuleiro. O jogo utiliza criptografia para proteger as mensagens trocadas entre os navios, garantindo que as informações sobre as posições dos navios inimigos sejam mantidas em segredo.
+O projeto "Batalha Naval" é uma implementação de um jogo de batalha naval, onde os jogadores controlam navios e tentam atacar os navios inimigos em um tabuleiro. O jogo utiliza criptografia para proteger as mensagens trocadas entre os navios e um controlador (externo), garantindo que as informações sobre as posições dos navios inimigos sejam mantidas em segredo.
 
 ## Estrutura de Pastas
 
@@ -25,8 +23,8 @@ NavalBattle/
 ## Funcionalidades
 
 - **Registro de Navios**: Os navios são registrados no início do jogo com uma posição central e orientação (horizontal ou vertical).
-- **Ataques**: Os jogadores podem atacar posições no tabuleiro, e o resultado do ataque é retornado, informando se houve acerto ou erro, juntamente com a distância do ataque em relação ao navio inimigo.
-- **Criptografia**: As mensagens trocadas entre os navios são criptografadas para proteger as informações sobre as posições dos navios inimigos.
+- **Ataques**: Os jogadores podem atacar posições no tabuleiro, e o resultado do ataque é retornado pelo controlador, informando se houve acerto ou erro, juntamente com a distância do ataque em relação ao navio inimigo.
+- **Criptografia**: As mensagens trocadas entre os navios e o controlador são criptografadas para proteger as informações sobre as posições dos navios.
 - **Estratégia de Ataque**: O sistema utiliza uma estratégia de ataque que prioriza posições conhecidas e descarta áreas que não são mais relevantes com base nos resultados dos ataques anteriores.
 
 ## Requisitos
