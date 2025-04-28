@@ -66,11 +66,7 @@ Para configurar o projeto, você precisará ajustar o arquivo `appsettings.Devel
 3. Ajuste as configurações no arquivo `appsettings.Development.json`.
 4. Execute o projeto.
 
-## Contribuições
-
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou pull requests.
-
-### Contribuidores
+## Contribuidores
 - [Aira Arima](https://github.com/airaarima)
 - [Karina Bertolazzo](https://github.com/karinabertolazzo)
 - [Patricia Ferrer](https://github.com/patsferrer)
