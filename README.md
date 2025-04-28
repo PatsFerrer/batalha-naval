@@ -70,6 +70,7 @@ Para configurar o projeto, você precisará ajustar o arquivo `appsettings.Devel
 
 Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou pull requests.
 
-## Licença
-
-Este projeto está licenciado sob a MIT License - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+### Contribuidores
+- [Aira Arima](https://github.com/airaarima)
+- [Karina Bertolazzo](https://github.com/karinabertolazzo)
+- [Patricia Ferrer](https://github.com/patsferrer)
